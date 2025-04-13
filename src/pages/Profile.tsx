@@ -1,17 +1,19 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Camera, User, MapPin, Globe, Mail } from "lucide-react";
+import { Loader2, Camera, User, MapPin, Globe, Mail, Smartphone, Download } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const profileSchema = z.object({
   username: z.string().min(3, { message: "Username must be at least 3 characters" }).optional(),
@@ -27,7 +29,7 @@ const Profile = () => {
   const navigate = useNavigate();
 
   // Redirect if not logged in
-  React.useEffect(() => {
+  useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
     }
@@ -52,7 +54,7 @@ const Profile = () => {
   });
 
   // Update form when profile data changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (profile) {
       form.reset({
         username: profile.username || "",
@@ -75,6 +77,10 @@ const Profile = () => {
     navigate("/");
   };
 
+  const handleViewProfile = () => {
+    navigate(`/user/${user?.id}`);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -84,153 +90,216 @@ const Profile = () => {
   }
 
   return (
-    <div className="container max-w-4xl py-10 px-4 sm:px-6 lg:px-8 pt-28 pb-20">
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-          <div className="relative">
-            <Avatar className="h-24 w-24 border-4 border-background">
-              <AvatarImage src={profile?.avatar_url || undefined} />
-              <AvatarFallback className="bg-matchee-primary/20 text-matchee-primary text-xl">
-                {profile?.full_name?.charAt(0) || user?.email?.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <Button 
-              size="icon" 
-              variant="outline" 
-              className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
-              disabled={true} // Disable until we implement storage
-              aria-label="Upload avatar"
-            >
-              <Camera className="h-4 w-4" />
-            </Button>
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      
+      <div className="container max-w-4xl py-10 px-4 sm:px-6 lg:px-8 pt-28 pb-20">
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            <div className="relative">
+              <Avatar className="h-24 w-24 border-4 border-background">
+                <AvatarImage src={profile?.avatar_url || undefined} />
+                <AvatarFallback className="bg-matchee-primary/20 text-matchee-primary text-xl">
+                  {profile?.full_name?.charAt(0) || user?.email?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <Button 
+                size="icon" 
+                variant="outline" 
+                className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
+                disabled={true} // Disable until we implement storage
+                aria-label="Upload avatar"
+              >
+                <Camera className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl font-bold">{profile?.full_name || "Your Profile"}</h1>
+              <p className="text-muted-foreground">
+                {profile?.username ? `@${profile.username}` : user?.email}
+              </p>
+              <Button 
+                variant="link" 
+                className="p-0 h-auto text-matchee-primary"
+                onClick={handleViewProfile}
+              >
+                View public profile
+              </Button>
+            </div>
           </div>
-          <div className="text-center sm:text-left">
-            <h1 className="text-2xl font-bold">{profile?.full_name || "Your Profile"}</h1>
-            <p className="text-muted-foreground">
-              {profile?.username ? `@${profile.username}` : user?.email}
-            </p>
-          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Information</CardTitle>
+              <CardDescription>Update your profile information</CardDescription>
+            </CardHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)}>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Username</FormLabel>
+                        <FormControl>
+                          <div className="flex">
+                            <span className="flex items-center px-3 border border-r-0 rounded-l-md bg-muted text-muted-foreground">@</span>
+                            <Input className="rounded-l-none" placeholder="username" {...field} />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="full_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Your full name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="bio"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bio</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Tell us a little about yourself"
+                            {...field} 
+                            className="resize-none"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="website"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Website</FormLabel>
+                          <FormControl>
+                            <div className="flex">
+                              <span className="flex items-center px-3 border border-r-0 rounded-l-md bg-muted">
+                                <Globe className="h-4 w-4 text-muted-foreground" />
+                              </span>
+                              <Input className="rounded-l-none" placeholder="https://your-website.com" {...field} />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="location"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Location</FormLabel>
+                          <FormControl>
+                            <div className="flex">
+                              <span className="flex items-center px-3 border border-r-0 rounded-l-md bg-muted">
+                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                              </span>
+                              <Input className="rounded-l-none" placeholder="City, Country" {...field} />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+                <CardFooter className="flex flex-col sm:flex-row gap-3 sm:justify-between">
+                  <Button
+                    type="submit"
+                    className="matchee-button matchee-gradient w-full sm:w-auto"
+                    disabled={isUpdating || !form.formState.isDirty}
+                  >
+                    {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Save Changes
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleSignOut}
+                    className="w-full sm:w-auto"
+                  >
+                    Sign Out
+                  </Button>
+                </CardFooter>
+              </form>
+            </Form>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Download Matchee Mobile App</CardTitle>
+              <CardDescription>Get the full experience with our mobile app</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <a 
+                  href="#" 
+                  className="flex items-center justify-center border border-border rounded-lg p-4 hover:bg-accent transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="bg-black text-white rounded-lg p-2">
+                      <Smartphone className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs">Download on the</p>
+                      <p className="font-bold text-lg -mt-1">App Store</p>
+                    </div>
+                  </div>
+                </a>
+
+                <a 
+                  href="#" 
+                  className="flex items-center justify-center border border-border rounded-lg p-4 hover:bg-accent transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="bg-green-500 text-white rounded-lg p-2">
+                      <Download className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs">Get it on</p>
+                      <p className="font-bold text-lg -mt-1">Google Play</p>
+                    </div>
+                  </div>
+                </a>
+              </div>
+
+              <div className="bg-accent/50 rounded-lg p-4 text-sm">
+                <p className="font-medium">Why download our mobile app?</p>
+                <ul className="mt-2 space-y-1 list-disc pl-5">
+                  <li>Get instant notifications for new matches</li>
+                  <li>Message on the go with mobile-optimized chat</li>
+                  <li>Swipe through potential matches with ease</li>
+                  <li>Access exclusive mobile-only features</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
-            <CardDescription>Update your profile information</CardDescription>
-          </CardHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Username</FormLabel>
-                      <FormControl>
-                        <div className="flex">
-                          <span className="flex items-center px-3 border border-r-0 rounded-l-md bg-muted text-muted-foreground">@</span>
-                          <Input className="rounded-l-none" placeholder="username" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="full_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Your full name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="bio"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bio</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Tell us a little about yourself"
-                          {...field} 
-                          className="resize-none"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="website"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Website</FormLabel>
-                        <FormControl>
-                          <div className="flex">
-                            <span className="flex items-center px-3 border border-r-0 rounded-l-md bg-muted">
-                              <Globe className="h-4 w-4 text-muted-foreground" />
-                            </span>
-                            <Input className="rounded-l-none" placeholder="https://your-website.com" {...field} />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="location"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Location</FormLabel>
-                        <FormControl>
-                          <div className="flex">
-                            <span className="flex items-center px-3 border border-r-0 rounded-l-md bg-muted">
-                              <MapPin className="h-4 w-4 text-muted-foreground" />
-                            </span>
-                            <Input className="rounded-l-none" placeholder="City, Country" {...field} />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex-col sm:flex-row gap-3 sm:justify-between">
-                <Button
-                  type="submit"
-                  className="matchee-button matchee-gradient w-full sm:w-auto"
-                  disabled={isUpdating || !form.formState.isDirty}
-                >
-                  {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Changes
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleSignOut}
-                  className="w-full sm:w-auto"
-                >
-                  Sign Out
-                </Button>
-              </CardFooter>
-            </form>
-          </Form>
-        </Card>
       </div>
+
+      <Footer />
     </div>
   );
 };
