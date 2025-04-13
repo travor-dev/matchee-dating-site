@@ -12,13 +12,13 @@ interface IcebreakerQuestion {
 }
 
 const icebreakers: IcebreakerQuestion[] = [
-  { id: 'ice1', text: 'What's your favorite way to spend a weekend?', category: 'Leisure' },
-  { id: 'ice2', text: 'What's one place you've always wanted to travel to?', category: 'Travel' },
+  { id: 'ice1', text: 'What\'s your favorite way to spend a weekend?', category: 'Leisure' },
+  { id: 'ice2', text: 'What\'s one place you\'ve always wanted to travel to?', category: 'Travel' },
   { id: 'ice3', text: 'Two truths and a lie. Go!', category: 'Fun' },
-  { id: 'ice4', text: 'What's your all-time favorite movie or TV show?', category: 'Entertainment' },
+  { id: 'ice4', text: 'What\'s your all-time favorite movie or TV show?', category: 'Entertainment' },
   { id: 'ice5', text: 'If you could have any superpower, what would it be?', category: 'Fantasy' },
-  { id: 'ice6', text: 'What's your go-to comfort food?', category: 'Food' },
-  { id: 'ice7', text: 'What's a skill you'd love to learn?', category: 'Personal Growth' },
+  { id: 'ice6', text: 'What\'s your go-to comfort food?', category: 'Food' },
+  { id: 'ice7', text: 'What\'s a skill you\'d love to learn?', category: 'Personal Growth' },
   { id: 'ice8', text: 'Early bird or night owl?', category: 'Lifestyle' }
 ];
 
