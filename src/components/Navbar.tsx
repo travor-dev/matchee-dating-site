@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Menu, X, LogIn, UserCircle, MessageSquare, Users, Bell } from 'lucide-react';
+import { Heart, Menu, X, LogIn, UserCircle, MessageSquare, Users, Bell, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -39,6 +39,15 @@ const Navbar = () => {
     setIsMenuOpen(false);
   };
 
+  // If user is logged in, show different navigation items
+  const navigationItems = user ? [
+    { name: 'Matches', path: '/matches' },
+    { name: 'Messages', path: '/messages' }
+  ] : [
+    { name: 'Discover', path: '/discover' },
+    { name: 'Events', path: '/events' }
+  ];
+
   return (
     <header className="fixed w-full top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -53,18 +62,15 @@ const Navbar = () => {
           
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link to="/discover" className="font-medium hover:text-matchee-primary transition-colors">
-              Discover
-            </Link>
-            <Link to="/matches" className="font-medium hover:text-matchee-primary transition-colors">
-              Matches
-            </Link>
-            <Link to="/messages" className="font-medium hover:text-matchee-primary transition-colors">
-              Messages
-            </Link>
-            <Link to="/events" className="font-medium hover:text-matchee-primary transition-colors">
-              Events
-            </Link>
+            {navigationItems.map((item) => (
+              <Link 
+                key={item.name}
+                to={item.path} 
+                className="font-medium hover:text-matchee-primary transition-colors"
+              >
+                {item.name}
+              </Link>
+            ))}
           </nav>
           
           <div className="hidden md:flex items-center gap-4">
@@ -84,9 +90,10 @@ const Navbar = () => {
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  aria-label="Notifications"
+                  aria-label="Search"
+                  onClick={() => navigate('/matches')}
                 >
-                  <Bell className="h-5 w-5" />
+                  <Search className="h-5 w-5" />
                 </Button>
                 
                 <DropdownMenu>
@@ -172,34 +179,16 @@ const Navbar = () => {
       {isMenuOpen && (
         <div className="md:hidden absolute w-full bg-white border-b border-border animate-slide-up">
           <div className="container mx-auto px-4 py-4 flex flex-col gap-4">
-            <Link 
-              to="/discover" 
-              className="py-2 font-medium hover:text-matchee-primary"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Discover
-            </Link>
-            <Link 
-              to="/matches" 
-              className="py-2 font-medium hover:text-matchee-primary"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Matches
-            </Link>
-            <Link 
-              to="/messages" 
-              className="py-2 font-medium hover:text-matchee-primary"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Messages
-            </Link>
-            <Link 
-              to="/events" 
-              className="py-2 font-medium hover:text-matchee-primary"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Events
-            </Link>
+            {navigationItems.map((item) => (
+              <Link 
+                key={item.name}
+                to={item.path} 
+                className="py-2 font-medium hover:text-matchee-primary"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.name}
+              </Link>
+            ))}
             <div className="flex flex-col gap-2 pt-2">
               {user ? (
                 <>

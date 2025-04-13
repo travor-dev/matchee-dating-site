@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Camera, MapPin, Globe, Send, MoreHorizontal, User, Calendar, Heart, X } from "lucide-react";
+import { Loader2, Camera, MapPin, Globe, Send, MoreHorizontal, User, Calendar, Heart, X, Link as LinkIcon, Mail as MailIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -328,7 +328,7 @@ const UserProfile = () => {
                     className="matchee-button matchee-gradient"
                     disabled={!user}
                   >
-                    <Mail className="h-4 w-4 mr-2" /> Message
+                    <MailIcon className="h-4 w-4 mr-2" /> Message
                   </Button>
                   <Button variant="outline" className="matchee-button">
                     <User className="h-4 w-4 mr-2" /> Follow
