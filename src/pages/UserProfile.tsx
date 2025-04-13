@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Camera, Mail, MapPin, Globe, Send, MoreHorizontal, User, Calendar, Heart, X } from "lucide-react";
+import { Loader2, Camera, MapPin, Globe, Send, MoreHorizontal, User, Calendar, Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +28,6 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // State for photo editing
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -41,7 +39,6 @@ const UserProfile = () => {
       setLoading(true);
       
       try {
-        // If userId is not provided, use the current user's id
         const profileId = userId || user?.id;
         
         if (!profileId) {
@@ -49,10 +46,8 @@ const UserProfile = () => {
           return;
         }
         
-        // Set whether this is the user's own profile
         setIsOwnProfile(profileId === user?.id);
         
-        // Fetch profile data
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
@@ -65,7 +60,6 @@ const UserProfile = () => {
         
         setProfile(profileData);
         
-        // Fetch user's posts
         const { data: postsData, error: postsError } = await supabase
           .from("posts")
           .select("*, profiles(full_name, username, avatar_url)")
@@ -106,7 +100,6 @@ const UserProfile = () => {
       
       if (error) throw error;
       
-      // Refresh posts
       const { data: newPosts, error: postsError } = await supabase
         .from("posts")
         .select("*, profiles(full_name, username, avatar_url)")
@@ -138,7 +131,6 @@ const UserProfile = () => {
     navigate(`/messages?userId=${profile.id}`);
   };
 
-  // Photo handling functions
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setAvatarFile(e.target.files[0]);
@@ -157,7 +149,6 @@ const UserProfile = () => {
     setIsUploading(true);
     
     try {
-      // Upload to storage
       const fileExt = avatarFile.name.split('.').pop();
       const fileName = `${user.id}-avatar-${Date.now()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
@@ -168,12 +159,10 @@ const UserProfile = () => {
         
       if (uploadError) throw uploadError;
       
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('profiles')
         .getPublicUrl(filePath);
       
-      // Update profile
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -181,7 +170,6 @@ const UserProfile = () => {
         
       if (updateError) throw updateError;
       
-      // Update local state
       setProfile({ ...profile, avatar_url: publicUrl });
       
       toast({
@@ -210,7 +198,6 @@ const UserProfile = () => {
     setIsUploading(true);
     
     try {
-      // Upload to storage
       const fileExt = coverFile.name.split('.').pop();
       const fileName = `${user.id}-cover-${Date.now()}.${fileExt}`;
       const filePath = `covers/${fileName}`;
@@ -221,12 +208,10 @@ const UserProfile = () => {
         
       if (uploadError) throw uploadError;
       
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('profiles')
         .getPublicUrl(filePath);
       
-      // Update profile
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ cover_url: publicUrl })
@@ -234,7 +219,6 @@ const UserProfile = () => {
         
       if (updateError) throw updateError;
       
-      // Update local state
       setProfile({ ...profile, cover_url: publicUrl });
       
       toast({
@@ -282,7 +266,6 @@ const UserProfile = () => {
       <Navbar />
       
       <main className="flex-grow pt-16">
-        {/* Cover Photo */}
         <div className="relative h-48 sm:h-64 md:h-80 bg-gray-200 w-full">
           {profile.cover_url ? (
             <img 
@@ -307,7 +290,6 @@ const UserProfile = () => {
           )}
         </div>
         
-        {/* Profile Header */}
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-16 sm:-mt-20 relative z-10 mb-6">
             <div className="relative mb-4 sm:mb-0">
@@ -365,10 +347,8 @@ const UserProfile = () => {
           </div>
         </div>
         
-        {/* Profile Content */}
         <div className="container mx-auto px-4 pb-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Left Column - Bio & Info */}
             <div className="md:col-span-1 space-y-6">
               <Card>
                 <CardHeader>
@@ -429,7 +409,6 @@ const UserProfile = () => {
               </Card>
             </div>
             
-            {/* Right Column - Posts & Activity */}
             <div className="md:col-span-2 space-y-6">
               <Tabs defaultValue="posts">
                 <TabsList className="w-full">
@@ -524,7 +503,6 @@ const UserProfile = () => {
         </div>
       </main>
       
-      {/* Avatar Upload Dialog */}
       <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -594,7 +572,6 @@ const UserProfile = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Cover Upload Dialog */}
       <Dialog open={coverDialogOpen} onOpenChange={setCoverDialogOpen}>
         <DialogContent>
           <DialogHeader>
