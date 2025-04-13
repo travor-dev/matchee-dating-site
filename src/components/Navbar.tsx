@@ -1,14 +1,34 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Heart, Menu, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Heart, Menu, X, LogIn, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+    setIsMenuOpen(false);
+  };
+
+  const goToProfile = () => {
+    navigate('/profile');
+    setIsMenuOpen(false);
+  };
+
+  const goToAuth = () => {
+    navigate('/auth');
+    setIsMenuOpen(false);
   };
 
   return (
@@ -40,12 +60,53 @@ const Navbar = () => {
           </nav>
           
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="outline" className="matchee-button">
-              Log In
-            </Button>
-            <Button className="matchee-button matchee-gradient">
-              Sign Up
-            </Button>
+            {user ? (
+              <>
+                <Button 
+                  variant="ghost" 
+                  className="flex items-center gap-2"
+                  onClick={goToProfile}
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name} />
+                    <AvatarFallback className="bg-matchee-primary/20 text-matchee-primary">
+                      {profile?.full_name?.charAt(0) || user.email?.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium">Profile</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="matchee-button"
+                  onClick={handleSignOut}
+                >
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  className="matchee-button"
+                  onClick={goToAuth}
+                >
+                  Log In
+                </Button>
+                <Button 
+                  className="matchee-button matchee-gradient"
+                  onClick={() => {
+                    navigate('/auth');
+                    setTimeout(() => {
+                      document.querySelector('[value="signup"]')?.dispatchEvent(
+                        new MouseEvent('click', { bubbles: true })
+                      );
+                    }, 100);
+                  }}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
           </div>
           
           {/* Mobile Menu Button */}
@@ -92,12 +153,49 @@ const Navbar = () => {
               Events
             </Link>
             <div className="flex flex-col gap-2 pt-2">
-              <Button variant="outline" className="matchee-button w-full">
-                Log In
-              </Button>
-              <Button className="matchee-button matchee-gradient w-full">
-                Sign Up
-              </Button>
+              {user ? (
+                <>
+                  <Button 
+                    variant="outline" 
+                    className="matchee-button w-full flex items-center justify-center gap-2"
+                    onClick={goToProfile}
+                  >
+                    <UserCircle className="h-4 w-4" />
+                    Profile
+                  </Button>
+                  <Button 
+                    className="matchee-button matchee-gradient w-full"
+                    onClick={handleSignOut}
+                  >
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button 
+                    variant="outline" 
+                    className="matchee-button w-full flex items-center justify-center gap-2"
+                    onClick={goToAuth}
+                  >
+                    <LogIn className="h-4 w-4" />
+                    Log In
+                  </Button>
+                  <Button 
+                    className="matchee-button matchee-gradient w-full"
+                    onClick={() => {
+                      navigate('/auth');
+                      setIsMenuOpen(false);
+                      setTimeout(() => {
+                        document.querySelector('[value="signup"]')?.dispatchEvent(
+                          new MouseEvent('click', { bubbles: true })
+                        );
+                      }, 100);
+                    }}
+                  >
+                    Sign Up
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
