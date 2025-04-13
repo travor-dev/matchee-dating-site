@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Camera, Mail, MapPin, Globe, Send, MoreHorizontal, User, Calendar, Heart } from "lucide-react";
+import { Loader2, Camera, Mail, MapPin, Globe, Send, MoreHorizontal, User, Calendar, Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { format } from "date-fns";
 import PostCard from "@/components/PostCard";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const UserProfile = () => {
   const { userId } = useParams();
@@ -27,6 +28,13 @@ const UserProfile = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // State for photo editing
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
+  const [coverDialogOpen, setCoverDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -130,6 +138,125 @@ const UserProfile = () => {
     navigate(`/messages?userId=${profile.id}`);
   };
 
+  // Photo handling functions
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setAvatarFile(e.target.files[0]);
+    }
+  };
+
+  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setCoverFile(e.target.files[0]);
+    }
+  };
+
+  const uploadAvatar = async () => {
+    if (!avatarFile || !user) return;
+    
+    setIsUploading(true);
+    
+    try {
+      // Upload to storage
+      const fileExt = avatarFile.name.split('.').pop();
+      const fileName = `${user.id}-avatar-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('profiles')
+        .upload(filePath, avatarFile);
+        
+      if (uploadError) throw uploadError;
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profiles')
+        .getPublicUrl(filePath);
+      
+      // Update profile
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+        
+      if (updateError) throw updateError;
+      
+      // Update local state
+      setProfile({ ...profile, avatar_url: publicUrl });
+      
+      toast({
+        title: "Profile updated",
+        description: "Your profile picture has been updated",
+      });
+      
+      setAvatarDialogOpen(false);
+      
+    } catch (error: any) {
+      console.error("Error uploading avatar:", error.message);
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      setAvatarFile(null);
+    }
+  };
+
+  const uploadCover = async () => {
+    if (!coverFile || !user) return;
+    
+    setIsUploading(true);
+    
+    try {
+      // Upload to storage
+      const fileExt = coverFile.name.split('.').pop();
+      const fileName = `${user.id}-cover-${Date.now()}.${fileExt}`;
+      const filePath = `covers/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('profiles')
+        .upload(filePath, coverFile);
+        
+      if (uploadError) throw uploadError;
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profiles')
+        .getPublicUrl(filePath);
+      
+      // Update profile
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ cover_url: publicUrl })
+        .eq('id', user.id);
+        
+      if (updateError) throw updateError;
+      
+      // Update local state
+      setProfile({ ...profile, cover_url: publicUrl });
+      
+      toast({
+        title: "Profile updated",
+        description: "Your cover photo has been updated",
+      });
+      
+      setCoverDialogOpen(false);
+      
+    } catch (error: any) {
+      console.error("Error uploading cover:", error.message);
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      setCoverFile(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -173,7 +300,7 @@ const UserProfile = () => {
               variant="outline" 
               className="absolute bottom-4 right-4 h-8 w-8 rounded-full bg-white/70 hover:bg-white"
               aria-label="Update cover photo"
-              onClick={() => navigate("/profile")}
+              onClick={() => setCoverDialogOpen(true)}
             >
               <Camera className="h-4 w-4" />
             </Button>
@@ -197,7 +324,7 @@ const UserProfile = () => {
                   variant="outline" 
                   className="absolute bottom-2 right-0 h-8 w-8 rounded-full bg-white"
                   aria-label="Update profile picture"
-                  onClick={() => navigate("/profile")}
+                  onClick={() => setAvatarDialogOpen(true)}
                 >
                   <Camera className="h-4 w-4" />
                 </Button>
@@ -396,6 +523,146 @@ const UserProfile = () => {
           </div>
         </div>
       </main>
+      
+      {/* Avatar Upload Dialog */}
+      <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Profile Picture</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {avatarFile && (
+              <div className="relative w-40 h-40 mx-auto">
+                <img 
+                  src={URL.createObjectURL(avatarFile)} 
+                  alt="Avatar Preview" 
+                  className="w-full h-full object-cover rounded-full"
+                />
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="absolute top-1 right-1 h-6 w-6 rounded-full bg-white/80"
+                  onClick={() => setAvatarFile(null)}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              {!avatarFile && (
+                <div className="flex justify-center">
+                  <label className="cursor-pointer">
+                    <div className="bg-primary/10 hover:bg-primary/20 transition-colors rounded-md py-12 px-6 text-center">
+                      <Camera className="mx-auto h-8 w-8 text-primary mb-2" />
+                      <p className="text-sm font-medium">Select an image</p>
+                      <p className="text-xs text-muted-foreground">JPG, PNG, GIF up to 10MB</p>
+                    </div>
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      onChange={handleAvatarChange}
+                      accept="image/*"
+                    />
+                  </label>
+                </div>
+              )}
+              
+              <div className="flex justify-end gap-2 pt-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setAvatarFile(null);
+                    setAvatarDialogOpen(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="matchee-button matchee-gradient"
+                  onClick={uploadAvatar}
+                  disabled={!avatarFile || isUploading}
+                >
+                  {isUploading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : "Upload"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Cover Upload Dialog */}
+      <Dialog open={coverDialogOpen} onOpenChange={setCoverDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Cover Photo</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {coverFile && (
+              <div className="relative w-full h-40 mx-auto">
+                <img 
+                  src={URL.createObjectURL(coverFile)} 
+                  alt="Cover Preview" 
+                  className="w-full h-full object-cover rounded-md"
+                />
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="absolute top-1 right-1 h-6 w-6 rounded-full bg-white/80"
+                  onClick={() => setCoverFile(null)}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              {!coverFile && (
+                <div className="flex justify-center">
+                  <label className="cursor-pointer w-full">
+                    <div className="bg-primary/10 hover:bg-primary/20 transition-colors rounded-md py-12 px-6 text-center">
+                      <Camera className="mx-auto h-8 w-8 text-primary mb-2" />
+                      <p className="text-sm font-medium">Select an image</p>
+                      <p className="text-xs text-muted-foreground">Choose a wide image for best results</p>
+                    </div>
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      onChange={handleCoverChange}
+                      accept="image/*"
+                    />
+                  </label>
+                </div>
+              )}
+              
+              <div className="flex justify-end gap-2 pt-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setCoverFile(null);
+                    setCoverDialogOpen(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="matchee-button matchee-gradient"
+                  onClick={uploadCover}
+                  disabled={!coverFile || isUploading}
+                >
+                  {isUploading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : "Upload"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       
       <Footer />
     </div>

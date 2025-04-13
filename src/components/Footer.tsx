@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Instagram, Twitter, Facebook } from 'lucide-react';
+import { Heart, Instagram, Twitter, Facebook, Download, Smartphone } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -78,6 +78,34 @@ const Footer = () => {
                 <Link to="/cookies" className="text-muted-foreground hover:text-matchee-primary transition-colors">Cookie Policy</Link>
               </li>
             </ul>
+            
+            {/* App Download Buttons */}
+            <div className="mt-6">
+              <h4 className="font-medium mb-3">Get the App</h4>
+              <div className="flex flex-col space-y-2">
+                <a 
+                  href="#" 
+                  className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors"
+                >
+                  <Smartphone className="h-5 w-5" />
+                  <div>
+                    <p className="text-xs leading-none">Download on the</p>
+                    <p className="font-bold">App Store</p>
+                  </div>
+                </a>
+                
+                <a 
+                  href="#" 
+                  className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                >
+                  <Download className="h-5 w-5" />
+                  <div>
+                    <p className="text-xs leading-none">Get it on</p>
+                    <p className="font-bold">Google Play</p>
+                  </div>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
         
