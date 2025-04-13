@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -77,19 +76,19 @@ const successStories = [
     id: 's1',
     names: 'Amy & David',
     image: 'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8Y291cGxlfGVufDB8fDB8fHww&auto=format&fit=crop&w=600&q=60',
-    story: 'We matched on Matchee last year and hit it off immediately! After 3 months of dating, we're now living together and planning our future.',
+    story: 'We matched on Matchee last year and hit it off immediately! After 3 months of dating, we\'re now living together and planning our future.',
   },
   {
     id: 's2',
     names: 'Zoe & Marcus',
     image: 'https://images.unsplash.com/photo-1597556288511-a8b089c37d3f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGNvdXBsZXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=600&q=60',
-    story: 'Thanks to Matchee's interest-based matching, we found each other through our shared love of hiking. Just got engaged during a mountain trek!',
+    story: 'Thanks to Matchee\'s interest-based matching, we found each other through our shared love of hiking. Just got engaged during a mountain trek!',
   },
   {
     id: 's3',
     names: 'Taylor & Jordan',
     image: 'https://images.unsplash.com/photo-1517456215183-9a2c3a748f6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8Y291cGxlfGVufDB8fDB8fHww&auto=format&fit=crop&w=600&q=60',
-    story: 'Our compatibility score was 92%! Matchee knew we'd be perfect for each other before we did. Dating for 6 months and never been happier.',
+    story: 'Our compatibility score was 92%! Matchee knew we\'d be perfect for each other before we did. Dating for 6 months and never been happier.',
   },
 ];
 

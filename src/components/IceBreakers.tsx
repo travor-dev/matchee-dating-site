@@ -19,7 +19,7 @@ const icebreakers: IcebreakerQuestion[] = [
   { id: 'ice5', text: 'If you could have any superpower, what would it be?', category: 'Fantasy' },
   { id: 'ice6', text: 'What's your go-to comfort food?', category: 'Food' },
   { id: 'ice7', text: 'What's a skill you'd love to learn?', category: 'Personal Growth' },
-  { id: 'ice8', text: 'Early bird or night owl?', category: 'Lifestyle' },
+  { id: 'ice8', text: 'Early bird or night owl?', category: 'Lifestyle' }
 ];
 
 interface IceBreakersProps {
