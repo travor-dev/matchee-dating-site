@@ -7,6 +7,7 @@ import MatcheeCard, { Profile } from '@/components/MatcheeCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const Matches = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,6 +15,7 @@ const Matches = () => {
   const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfiles = async () => {
@@ -85,6 +87,10 @@ const Matches = () => {
     });
   };
 
+  const handleViewProfile = (id: string) => {
+    navigate(`/user/${id}`);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -121,6 +127,7 @@ const Matches = () => {
                 profile={profile}
                 onLike={() => handleLike(profile.id)}
                 onSpark={() => handleSpark(profile.id)}
+                onViewProfile={() => handleViewProfile(profile.id)}
               />
             ))}
           </div>

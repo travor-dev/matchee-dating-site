@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Camera, MapPin, Globe, Send, MoreHorizontal, User, Calendar, Heart, X, Link as LinkIcon, Mail as MailIcon } from "lucide-react";
+import { Loader2, Camera, MapPin, Globe, Send, MoreHorizontal, User, Calendar, Heart, X, Link as LinkIcon, Mail as MailIcon, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import Footer from "@/components/Footer";
 import { format } from "date-fns";
 import PostCard from "@/components/PostCard";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import CreatePostForm from "@/components/CreatePostForm";
 
 const UserProfile = () => {
   const { userId } = useParams();
@@ -33,6 +35,8 @@ const UserProfile = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
   const [coverDialogOpen, setCoverDialogOpen] = useState(false);
+  const [liveDialogOpen, setLiveDialogOpen] = useState(false);
+  const [remoteUser, setRemoteUser] = useState("");
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -127,8 +131,28 @@ const UserProfile = () => {
     }
   };
 
+  const refreshPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("posts")
+        .select("*, profiles(full_name, username, avatar_url)")
+        .eq("user_id", userId || user?.id)
+        .order("created_at", { ascending: false });
+        
+      if (error) throw error;
+      setPosts(data);
+    } catch (error) {
+      console.error("Error refreshing posts:", error);
+    }
+  };
+
   const handleMessageUser = () => {
     navigate(`/messages?userId=${profile.id}`);
+  };
+
+  const handleLiveChat = () => {
+    setRemoteUser(profile.full_name || "User");
+    setLiveDialogOpen(true);
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -324,14 +348,19 @@ const UserProfile = () => {
               {!isOwnProfile ? (
                 <>
                   <Button 
+                    onClick={handleLiveChat} 
+                    className="matchee-button"
+                    variant="outline"
+                    disabled={!user}
+                  >
+                    <Video className="h-4 w-4 mr-2" /> Live Chat
+                  </Button>
+                  <Button 
                     onClick={handleMessageUser} 
                     className="matchee-button matchee-gradient"
                     disabled={!user}
                   >
                     <MailIcon className="h-4 w-4 mr-2" /> Message
-                  </Button>
-                  <Button variant="outline" className="matchee-button">
-                    <User className="h-4 w-4 mr-2" /> Follow
                   </Button>
                 </>
               ) : (
@@ -419,46 +448,7 @@ const UserProfile = () => {
                 
                 <TabsContent value="posts" className="space-y-6 pt-4">
                   {isOwnProfile && (
-                    <Card>
-                      <CardContent className="pt-6">
-                        <div className="flex gap-4">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={currentUserProfile?.avatar_url || undefined} />
-                            <AvatarFallback className="bg-matchee-primary/20 text-matchee-primary">
-                              {currentUserProfile?.full_name?.charAt(0) || user?.email?.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          
-                          <div className="flex-1 space-y-3">
-                            <Textarea 
-                              placeholder="What's on your mind?"
-                              value={postContent}
-                              onChange={(e) => setPostContent(e.target.value)}
-                              className="resize-none"
-                            />
-                            
-                            <div className="flex justify-between">
-                              <div className="flex gap-2">
-                                {/* Post attachments buttons could go here */}
-                              </div>
-                              
-                              <Button 
-                                onClick={handleCreatePost}
-                                className="matchee-button matchee-gradient"
-                                disabled={!postContent.trim() || isSubmitting}
-                              >
-                                {isSubmitting ? (
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                ) : (
-                                  <Send className="h-4 w-4 mr-2" />
-                                )}
-                                Post
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <CreatePostForm onPostCreated={refreshPosts} />
                   )}
                   
                   {posts.length > 0 ? (
@@ -467,9 +457,7 @@ const UserProfile = () => {
                         key={post.id} 
                         post={post} 
                         currentUserId={user?.id} 
-                        onPostUpdate={() => {
-                          // Function to refresh posts could go here
-                        }}
+                        onPostUpdate={refreshPosts}
                       />
                     ))
                   ) : (
@@ -637,6 +625,38 @@ const UserProfile = () => {
                 </Button>
               </div>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={liveDialogOpen} onOpenChange={setLiveDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Live Chat with {remoteUser}</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="text-center">
+              <div className="mx-auto bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mb-4">
+                <Video className="h-12 w-12 text-matchee-primary" />
+              </div>
+              <p className="text-muted-foreground">
+                Start a live video or voice conversation
+              </p>
+            </div>
+            
+            <div className="flex justify-center gap-4">
+              <Button variant="outline" className="w-32">
+                Voice only
+              </Button>
+              <Button className="matchee-button matchee-gradient w-32">
+                Video chat
+              </Button>
+            </div>
+            
+            <p className="text-xs text-center text-muted-foreground">
+              By starting a conversation, you agree to our terms of service
+            </p>
           </div>
         </DialogContent>
       </Dialog>

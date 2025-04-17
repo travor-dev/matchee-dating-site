@@ -46,7 +46,7 @@ const PostCard = ({ post, currentUserId, onPostUpdate }: PostCardProps) => {
       });
       
       if (onPostUpdate) onPostUpdate();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error deleting post:", error);
       toast({
         title: "Error",
