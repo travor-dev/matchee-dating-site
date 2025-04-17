@@ -29,6 +29,7 @@ interface MatcheeCardProps {
   onDislike?: (id: string) => void;
   onMessage?: (id: string) => void;
   onSpark?: (id: string) => void;
+  onViewProfile?: (id: string) => void;
   className?: string;
 }
 
@@ -38,6 +39,7 @@ const MatcheeCard = ({
   onDislike, 
   onMessage, 
   onSpark,
+  onViewProfile,
   className 
 }: MatcheeCardProps) => {
   const { id, name, age, location, distance, bio, photos, interests, compatibilityScore, isVerified } = profile;
