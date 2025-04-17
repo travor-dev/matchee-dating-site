@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Heart, MessageCircle, X, Star, MapPin, BadgeCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -44,20 +43,20 @@ const MatcheeCard = ({
 }: MatcheeCardProps) => {
   const { id, name, age, location, distance, bio, photos, interests, compatibilityScore, isVerified } = profile;
   
-  // Calculate meter level (0-100%)
   const meterLevel = Math.min(100, Math.max(0, compatibilityScore));
   
   return (
     <div className={cn("matchee-card overflow-hidden bg-white", className)}>
-      {/* Main Photo */}
-      <div className="relative aspect-[3/4] overflow-hidden">
+      <div 
+        className="relative aspect-[3/4] overflow-hidden cursor-pointer"
+        onClick={() => onViewProfile?.(id)}
+      >
         <img 
           src={photos[0]} 
           alt={`${name}'s profile`} 
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-transform hover:scale-105"
         />
         
-        {/* Compatibility Meter */}
         <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-md rounded-full px-3 py-1 flex items-center gap-1.5">
           <div className="w-6 h-6 rounded-full border-2 border-white relative flex items-center justify-center">
             <div 
@@ -71,21 +70,18 @@ const MatcheeCard = ({
           <span className="text-xs font-medium text-white">Match</span>
         </div>
         
-        {/* Verified Badge */}
         {isVerified && (
           <div className="absolute top-4 left-4 bg-white/80 backdrop-blur-sm rounded-full p-1">
             <BadgeCheck className="h-5 w-5 text-blue-500" />
           </div>
         )}
         
-        {/* Location */}
         <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1.5">
           <MapPin className="h-3.5 w-3.5 text-white" />
           <span className="text-xs text-white">{distance} away</span>
         </div>
       </div>
       
-      {/* Profile Info */}
       <div className="p-4 space-y-3">
         <div>
           <div className="flex justify-between">
@@ -98,7 +94,6 @@ const MatcheeCard = ({
         
         <p className="text-sm line-clamp-2">{bio}</p>
         
-        {/* Interests */}
         <div className="flex flex-wrap gap-1.5">
           {interests.map((interest) => (
             <Badge 
@@ -111,7 +106,6 @@ const MatcheeCard = ({
           ))}
         </div>
         
-        {/* Action Buttons */}
         <div className="flex justify-between pt-2">
           <Button 
             size="icon" 

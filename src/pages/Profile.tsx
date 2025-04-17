@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -17,6 +16,7 @@ import { useToast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
+import VerifyAccountDialog from '@/components/VerifyAccountDialog';
 
 const profileSchema = z.object({
   username: z.string().min(3, { message: "Username must be at least 3 characters" }).optional(),
@@ -32,14 +32,13 @@ const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // State for photo editing
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
   const [coverDialogOpen, setCoverDialogOpen] = useState(false);
+  const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
 
-  // Redirect if not logged in
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
@@ -64,7 +63,6 @@ const Profile = () => {
     },
   });
 
-  // Update form when profile data changes
   useEffect(() => {
     if (profile) {
       form.reset({
@@ -92,7 +90,6 @@ const Profile = () => {
     navigate(`/user/${user?.id}`);
   };
 
-  // Photo handling functions
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setAvatarFile(e.target.files[0]);
@@ -111,7 +108,6 @@ const Profile = () => {
     setIsUploading(true);
     
     try {
-      // Upload to storage
       const fileExt = avatarFile.name.split('.').pop();
       const fileName = `${user.id}-avatar-${Date.now()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
@@ -122,12 +118,10 @@ const Profile = () => {
         
       if (uploadError) throw uploadError;
       
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('profiles')
         .getPublicUrl(filePath);
       
-      // Update profile
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -135,7 +129,6 @@ const Profile = () => {
         
       if (updateError) throw updateError;
       
-      // Update local state
       updateProfile({ avatar_url: publicUrl });
       
       toast({
@@ -164,7 +157,6 @@ const Profile = () => {
     setIsUploading(true);
     
     try {
-      // Upload to storage
       const fileExt = coverFile.name.split('.').pop();
       const fileName = `${user.id}-cover-${Date.now()}.${fileExt}`;
       const filePath = `covers/${fileName}`;
@@ -175,12 +167,10 @@ const Profile = () => {
         
       if (uploadError) throw uploadError;
       
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('profiles')
         .getPublicUrl(filePath);
       
-      // Update profile
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ cover_url: publicUrl })
@@ -188,7 +178,6 @@ const Profile = () => {
         
       if (updateError) throw updateError;
       
-      // Update local state
       updateProfile({ cover_url: publicUrl });
       
       toast({
@@ -243,8 +232,22 @@ const Profile = () => {
                 <Camera className="h-4 w-4" />
               </Button>
             </div>
-            <div className="text-center sm:text-left">
-              <h1 className="text-2xl font-bold">{profile?.full_name || "Your Profile"}</h1>
+            <div className="text-center sm:text-left flex-grow">
+              <div className="flex items-center justify-center sm:justify-start gap-2">
+                <h1 className="text-2xl font-bold">{profile?.full_name || "Your Profile"}</h1>
+                {profile?.isVerified ? (
+                  <BadgeCheck className="h-5 w-5 text-blue-500" />
+                ) : (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setVerifyDialogOpen(true)}
+                    className="text-blue-500 hover:text-blue-600"
+                  >
+                    Verify Account
+                  </Button>
+                )}
+              </div>
               <p className="text-muted-foreground">
                 {profile?.username ? `@${profile.username}` : user?.email}
               </p>
@@ -429,7 +432,6 @@ const Profile = () => {
         </div>
       </div>
       
-      {/* Avatar Upload Dialog */}
       <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -499,7 +501,6 @@ const Profile = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Cover Upload Dialog */}
       <Dialog open={coverDialogOpen} onOpenChange={setCoverDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -568,6 +569,12 @@ const Profile = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <VerifyAccountDialog 
+        open={verifyDialogOpen}
+        onOpenChange={setVerifyDialogOpen}
+        onVerified={() => updateProfile({ isVerified: true })}
+      />
 
       <Footer />
     </div>
