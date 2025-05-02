@@ -17,6 +17,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import VerifyAccountDialog from '@/components/VerifyAccountDialog';
+import { BadgeCheck } from 'lucide-react';
 
 const profileSchema = z.object({
   username: z.string().min(3, { message: "Username must be at least 3 characters" }).optional(),
@@ -38,12 +39,20 @@ const Profile = () => {
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
   const [coverDialogOpen, setCoverDialogOpen] = useState(false);
   const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (profile) {
+      // If the profiles table exists and has an isVerified field, use that
+      setIsVerified(!!profile.isVerified);
+    }
+  }, [profile]);
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -200,6 +209,15 @@ const Profile = () => {
     }
   };
 
+  const handleVerified = () => {
+    setIsVerified(true);
+    // Update the local profile state
+    if (profile) {
+      const updatedProfile = { ...profile, isVerified: true };
+      setProfile(updatedProfile);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -207,6 +225,28 @@ const Profile = () => {
       </div>
     );
   }
+
+  const renderVerificationButton = () => {
+    if (isVerified) {
+      return (
+        <div className="flex items-center gap-2 text-green-600 font-medium">
+          <BadgeCheck className="h-5 w-5" />
+          <span>Verified Account</span>
+        </div>
+      );
+    }
+    
+    return (
+      <Button 
+        variant="outline"
+        onClick={() => setVerifyDialogOpen(true)}
+        className="w-full sm:w-auto flex items-center gap-2"
+      >
+        <BadgeCheck className="h-4 w-4" />
+        Verify Account
+      </Button>
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -359,14 +399,21 @@ const Profile = () => {
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col sm:flex-row gap-3 sm:justify-between">
-                  <Button
-                    type="submit"
-                    className="matchee-button matchee-gradient w-full sm:w-auto"
-                    disabled={isUpdating || !form.formState.isDirty}
-                  >
-                    {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save Changes
-                  </Button>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-6">
+                    <div>
+                      {renderVerificationButton()}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        type="submit"
+                        className="matchee-button matchee-gradient w-full sm:w-auto"
+                        disabled={isUpdating || !form.formState.isDirty}
+                      >
+                        {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Save Changes
+                      </Button>
+                    </div>
+                  </div>
                   <Button
                     type="button"
                     variant="outline"
@@ -573,7 +620,7 @@ const Profile = () => {
       <VerifyAccountDialog 
         open={verifyDialogOpen}
         onOpenChange={setVerifyDialogOpen}
-        onVerified={() => updateProfile({ isVerified: true })}
+        onVerified={handleVerified}
       />
 
       <Footer />

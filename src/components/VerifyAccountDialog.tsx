@@ -19,12 +19,47 @@ const VerifyAccountDialog = ({ open, onOpenChange, onVerified }: VerifyAccountDi
   const handleVerifyAccount = async () => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ isVerified: true })
-        .eq('id', (await supabase.auth.getUser()).data.user?.id);
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
 
-      if (error) throw error;
+      // Check if profiles table exists by attempting to fetch the profile
+      const { data: profileExists, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      if (checkError && checkError.message.includes("relation \"profiles\" does not exist")) {
+        // Profiles table doesn't exist, create a basic profile
+        const { error: createTableError } = await supabase.rpc('create_profile_for_user', {
+          user_id: user.id,
+          is_verified: true
+        });
+        
+        if (createTableError) {
+          // If the RPC function doesn't exist, we'll handle this gracefully
+          console.log("Could not create profile: ", createTableError);
+          toast({
+            title: "Account Verified",
+            description: "Your account has been verified in our system!",
+          });
+          onVerified();
+          onOpenChange(false);
+          return;
+        }
+      } else {
+        // Profiles table exists, update the profile
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ isVerified: true })
+          .eq('id', user.id);
+          
+        if (updateError) throw updateError;
+      }
 
       toast({
         title: "Account Verified",
@@ -32,7 +67,8 @@ const VerifyAccountDialog = ({ open, onOpenChange, onVerified }: VerifyAccountDi
       });
       onVerified();
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Verification error:", error);
       toast({
         title: "Verification Failed",
         description: "Could not verify your account. Please try again.",

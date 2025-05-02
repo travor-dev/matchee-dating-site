@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +16,7 @@ import { format } from "date-fns";
 import PostCard from "@/components/PostCard";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import CreatePostForm from "@/components/CreatePostForm";
+import BadgeCheck from "@/components/BadgeCheck";
 
 const UserProfile = () => {
   const { userId } = useParams();
@@ -338,7 +338,12 @@ const UserProfile = () => {
             </div>
             
             <div className="text-center sm:text-left sm:ml-6 flex-grow">
-              <h1 className="text-2xl font-bold">{profile.full_name}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold">{profile.full_name}</h1>
+                {profile.isVerified && (
+                  <BadgeCheck className="h-5 w-5 text-green-600" />
+                )}
+              </div>
               {profile.username && (
                 <p className="text-muted-foreground">@{profile.username}</p>
               )}

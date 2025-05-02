@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
@@ -87,6 +86,7 @@ const Matches = () => {
     });
   };
 
+  // Make sure handleViewProfile properly navigates to the user profile
   const handleViewProfile = (id: string) => {
     navigate(`/user/${id}`);
   };
