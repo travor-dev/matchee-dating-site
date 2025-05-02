@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -33,19 +32,28 @@ const PostCard = ({ post, currentUserId, onPostUpdate }: PostCardProps) => {
     setIsDeleting(true);
     
     try {
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', post.id);
+      try {
+        const { error } = await supabase
+          .from('posts')
+          .delete()
+          .eq('id', post.id);
+          
+        if (error) throw error;
         
-      if (error) throw error;
-      
-      toast({
-        title: "Post deleted",
-        description: "Your post has been successfully deleted",
-      });
-      
-      if (onPostUpdate) onPostUpdate();
+        toast({
+          title: "Post deleted",
+          description: "Your post has been successfully deleted",
+        });
+        
+        if (onPostUpdate) onPostUpdate();
+      } catch (error: any) {
+        console.error("Error deleting post:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete post",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error("Error deleting post:", error);
       toast({

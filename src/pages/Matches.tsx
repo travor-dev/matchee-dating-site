@@ -19,30 +19,46 @@ const Matches = () => {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*');
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*');
 
-        if (error) {
-          throw error;
+          if (error) {
+            throw error;
+          }
+
+          // Transform to Profile format
+          const formattedProfiles = data.map((profile: any) => ({
+            id: profile.id,
+            name: profile.full_name || 'Anonymous',
+            age: 0, // You would calculate this from DOB if available
+            location: profile.location || 'Unknown location',
+            distance: 'Unknown distance',
+            bio: profile.bio || 'No bio available',
+            photos: [profile.avatar_url || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330'],
+            interests: [], // Would need a separate query for interests
+            compatibilityScore: Math.floor(Math.random() * 100), // Random for now
+            isVerified: !!profile.isVerified, // Convert to boolean
+          }));
+
+          setProfiles(formattedProfiles);
+          setFilteredProfiles(formattedProfiles);
+        } catch (error: any) {
+          console.error('Error fetching profiles:', error);
+          
+          // If the profiles table doesn't exist yet, set empty profiles
+          if (error.message.includes("relation \"profiles\" does not exist")) {
+            setProfiles([]);
+            setFilteredProfiles([]);
+          } else {
+            toast({
+              title: "Error",
+              description: "Could not fetch profiles. Please try again later.",
+              variant: "destructive",
+            });
+          }
         }
-
-        // Transform to Profile format
-        const formattedProfiles = data.map((profile) => ({
-          id: profile.id,
-          name: profile.full_name || 'Anonymous',
-          age: 0, // You would calculate this from DOB if available
-          location: profile.location || 'Unknown location',
-          distance: 'Unknown distance',
-          bio: profile.bio || 'No bio available',
-          photos: [profile.avatar_url || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330'],
-          interests: [], // Would need a separate query for interests
-          compatibilityScore: Math.floor(Math.random() * 100), // Random for now
-          isVerified: true, // Default to true for demo
-        }));
-
-        setProfiles(formattedProfiles);
-        setFilteredProfiles(formattedProfiles);
       } catch (error) {
         console.error('Error fetching profiles:', error);
         toast({

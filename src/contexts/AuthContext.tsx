@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,18 +57,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .single();
 
-      if (error) {
-        console.error("Error fetching profile:", error);
-        return;
+        if (error) {
+          if (error.message.includes("relation \"profiles\" does not exist")) {
+            console.log("Profiles table doesn't exist yet");
+            return;
+          }
+          console.error("Error fetching profile:", error);
+          return;
+        }
+
+        setProfile(data);
+      } catch (error) {
+        console.error("Unexpected error fetching profile:", error);
       }
-
-      setProfile(data);
     } catch (error) {
       console.error("Unexpected error fetching profile:", error);
     }
@@ -168,27 +175,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       if (!user) throw new Error("No user logged in");
 
-      const { error } = await supabase
-        .from("profiles")
-        .update(updates)
-        .eq("id", user.id);
+      try {
+        const { error } = await supabase
+          .from("profiles")
+          .update(updates)
+          .eq("id", user.id);
 
-      if (error) {
+        if (error) {
+          if (error.message.includes("relation \"profiles\" does not exist")) {
+            console.log("Profiles table doesn't exist yet");
+            toast({
+              title: "Profile updated locally",
+              description: "Your profile has been updated in your session.",
+            });
+            // Update local profile state even though we couldn't save to DB
+            setProfile({
+              ...profile,
+              ...updates,
+            });
+            return;
+          }
+          
+          toast({
+            title: "Error updating profile",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Profile updated",
+            description: "Your profile has been updated successfully.",
+          });
+          
+          // Update local profile state
+          setProfile({
+            ...profile,
+            ...updates,
+          });
+        }
+      } catch (error) {
+        console.error("Error updating profile:", error);
         toast({
-          title: "Error updating profile",
-          description: error.message,
+          title: "Error",
+          description: "An unexpected error occurred during profile update.",
           variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Profile updated",
-          description: "Your profile has been updated successfully.",
-        });
-        
-        // Update local profile state
-        setProfile({
-          ...profile,
-          ...updates,
         });
       }
     } catch (error) {

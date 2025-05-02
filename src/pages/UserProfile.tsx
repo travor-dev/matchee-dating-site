@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Camera, MapPin, Globe, Send, MoreHorizontal, User, Calendar, Heart, X, Link as LinkIcon, Mail as MailIcon, Video } from "lucide-react";
+import { Loader2, Camera, MapPin, Globe, Send, MoreHorizontal, User, Calendar, Heart, X, Link as LinkIcon, Mail as MailIcon, Video, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +16,6 @@ import { format } from "date-fns";
 import PostCard from "@/components/PostCard";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import CreatePostForm from "@/components/CreatePostForm";
-import BadgeCheck from "@/components/BadgeCheck";
 
 const UserProfile = () => {
   const { userId } = useParams();
@@ -53,9 +52,9 @@ const UserProfile = () => {
         setIsOwnProfile(profileId === user?.id);
         
         const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", profileId)
+          .from('profiles')
+          .select('*')
+          .eq('id', profileId)
           .single();
           
         if (profileError) {
@@ -65,10 +64,10 @@ const UserProfile = () => {
         setProfile(profileData);
         
         const { data: postsData, error: postsError } = await supabase
-          .from("posts")
-          .select("*, profiles(full_name, username, avatar_url)")
-          .eq("user_id", profileId)
-          .order("created_at", { ascending: false });
+          .from('posts')
+          .select('*, profiles(full_name, username, avatar_url)')
+          .eq('user_id', profileId)
+          .order('created_at', { ascending: false });
           
         if (postsError) {
           throw postsError;

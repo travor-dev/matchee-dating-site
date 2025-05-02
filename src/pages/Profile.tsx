@@ -211,11 +211,7 @@ const Profile = () => {
 
   const handleVerified = () => {
     setIsVerified(true);
-    // Update the local profile state
-    if (profile) {
-      const updatedProfile = { ...profile, isVerified: true };
-      setProfile(updatedProfile);
-    }
+    // No need to manually update the profile state here, the auth context will handle it
   };
 
   if (loading) {

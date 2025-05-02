@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,22 +49,39 @@ const CreatePostForm = ({ onPostCreated }: CreatePostFormProps) => {
         imageUrl = await uploadPostImage(imageFile, user.id);
       }
       
-      const { error } = await supabase.from("posts").insert({
-        user_id: user.id,
-        content: postContent,
-        image_url: imageUrl
-      });
-      
-      if (error) throw error;
-      
-      setPostContent('');
-      removeImage();
-      onPostCreated();
-      
-      toast({
-        title: "Post created",
-        description: "Your post was created successfully",
-      });
+      try {
+        const { error } = await supabase.from('posts').insert({
+          user_id: user.id,
+          content: postContent,
+          image_url: imageUrl
+        });
+        
+        if (error) throw error;
+        
+        setPostContent('');
+        removeImage();
+        onPostCreated();
+        
+        toast({
+          title: "Post created",
+          description: "Your post was created successfully",
+        });
+      } catch (error: any) {
+        console.error("Error creating post:", error);
+        if (error.message.includes("relation \"posts\" does not exist")) {
+          toast({
+            title: "Error",
+            description: "Posts feature is not available yet. Please try again later.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Could not create post. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }
     } catch (error) {
       console.error("Error creating post:", error);
       toast({
